@@ -18,7 +18,7 @@ Version:	%{ver}.%{patchlevel}
 Release:	1
 License:	BSD-like (see LICENSE)
 Group:		Libraries
-#Source0Download: http://www.oracle.com/technetwork/database/berkeleydb/downloads/index.html
+#Source0Download: http://www.oracle.com/technetwork/database/berkeleydb/downloads/index-082944.html
 Source0:	http://download.oracle.com/berkeley-db/db-%{ver}.tar.gz
 # Source0-md5:	88466dd6c13d5d8cddb406be8a1d4d92
 URL:		http://www.oracle.com/technetwork/database/berkeleydb/downloads/index.html
