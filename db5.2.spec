@@ -3,6 +3,7 @@
 %bcond_without	java		# don't build Java bindings
 %bcond_without	tcl		# don't build Tcl bindings
 %bcond_without	static_libs	# don't build static libraries
+%bcond_with	sqlite3		# build Sqlite3 API libraries
 %bcond_with	default_db	# use this db as default system db
 
 %include	/usr/lib/rpm/macros.java
@@ -414,7 +415,7 @@ cd build_unix
 	--enable-build_dbm \
 	--enable-posixmutexes \
 	--enable-sql \
-	--enable-sql_compat \
+	%{?with_sqlite3:--enable-sql_compat} \
 	--enable-sql_codegen \
 	--enable-stl \
 	%{?with_java:--enable-java} \
@@ -693,6 +694,7 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/dbstl_utility.h
 %{_includedir}/dbstl_vector.h
 
+%if %{with sqlite3}
 %files sqlite3
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_bindir}/sqlite3
@@ -702,6 +704,7 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(644,root,root,755)
 %{_libdir}/libsqlite3.la
 %{_includedir}/sqlite3.h
+%endif
 
 %files utils
 %defattr(644,root,root,755)
