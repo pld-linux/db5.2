@@ -5,6 +5,7 @@
 %bcond_without	static_libs	# don't build static libraries
 %bcond_with	sqlite3		# build Sqlite3 API libraries
 %bcond_with	default_db	# use this db as default system db
+%bcond_without	rpm_db		# install library to rootfs for /bin/rpm
 
 %include	/usr/lib/rpm/macros.java
 
@@ -446,9 +447,10 @@ install -d $RPM_BUILD_ROOT%{_javadir}
 	docdir=%{_docdir}/db-%{version}-docs \
 	includedir=%{_includedir}
 
-%if %{with default_db}
+%if %{with rpm_db}
 install -d $RPM_BUILD_ROOT/%{_lib}
 mv $RPM_BUILD_ROOT%{_libdir}/libdb-%{libver}.so $RPM_BUILD_ROOT/%{_lib}
+ln -sf /%{_lib}/libdb-%{libver}.so $RPM_BUILD_ROOT%{_libdir}/libdb-%{libver}.so
 %endif
 
 cd $RPM_BUILD_ROOT%{_libdir}
@@ -460,9 +462,8 @@ mv -f libdb_cxx.a libdb_cxx-%{libver}.a
 mv -f $RPM_BUILD_ROOT%{_libdir}/db.jar $RPM_BUILD_ROOT%{_javadir}/db-%{libver}.jar
 %endif
 %if %{with default_db}
-ln -sf /%{_lib}/libdb-%{libver}.so libdb.so
-ln -sf /%{_lib}/libdb-%{libver}.so libdb-%{libver}.so
-ln -sf /%{_lib}/libdb-%{libver}.so libndbm.so
+ln -sf libdb-%{libver}.so libdb.so
+ln -sf libdb-%{libver}.so libndbm.so
 ln -sf libdb-%{libver}.la libdb.la
 ln -sf libdb-%{libver}.la libndbm.la
 ln -sf libdb_cxx-%{libver}.so libdb_cxx.so
@@ -479,6 +480,23 @@ ln -sf libdb_tcl-%{libver}.la libdb_tcl.la
 ln -sf libdb-%{libver}.a libdb.a
 ln -sf libdb-%{libver}.a libndbm.a
 ln -sf libdb_cxx-%{libver}.a libdb_cxx.a
+%endif
+%else
+%{__rm} libdb.so
+%{__rm} libdb_cxx.so
+%{__rm} libdb_sql.so
+%{__rm} libdb_stl.so
+%{__rm} libdb-%{major}.so
+%{__rm} libdb_cxx-%{major}.so
+%{__rm} libdb_sql-%{major}.so
+%{__rm} libdb_stl-%{major}.so
+%if %{with java}
+%{__rm} libdb_java.so
+%{__rm} libdb_java-%{major}.so
+%endif
+%if %{with tcl}
+%{__rm} libdb_tcl.so
+%{__rm} libdb_tcl-%{major}.so
 %endif
 %endif
 
@@ -535,7 +553,7 @@ rm -rf $RPM_BUILD_ROOT
 %files
 %defattr(644,root,root,755)
 %doc LICENSE README docs/index.html docs/license
-%if %{with default_db}
+%if %{with rpm_db}
 %attr(755,root,root) /%{_lib}/libdb-%{libver}.so
 %else
 %attr(755,root,root) %{_libdir}/libdb-%{libver}.so
@@ -545,9 +563,11 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_bindir}/db%{libver}_sql_codegen
 %{_libdir}/libdb-%{libver}.la
+%if %{with rpm_db}
+%attr(755,root,root) %{_libdir}/libdb-%{libver}.so
+%endif
 %if %{with default_db}
 %attr(755,root,root) %{_bindir}/db_sql_codegen
-%attr(755,root,root) %{_libdir}/libdb-%{libver}.so
 %attr(755,root,root) %{_libdir}/libdb-%{major}.so
 %attr(755,root,root) %{_libdir}/libdb.so
 %attr(755,root,root) %{_libdir}/libndbm.so
