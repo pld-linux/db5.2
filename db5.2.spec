@@ -451,6 +451,8 @@ install -d $RPM_BUILD_ROOT%{_javadir}
 install -d $RPM_BUILD_ROOT/%{_lib}
 mv $RPM_BUILD_ROOT%{_libdir}/libdb-%{libver}.so $RPM_BUILD_ROOT/%{_lib}
 ln -sf /%{_lib}/libdb-%{libver}.so $RPM_BUILD_ROOT%{_libdir}/libdb-%{libver}.so
+mv $RPM_BUILD_ROOT%{_libdir}/libdb_sql-%{libver}.so $RPM_BUILD_ROOT/%{_lib}
+ln -sf /%{_lib}/libdb_sql-%{libver}.so $RPM_BUILD_ROOT%{_libdir}/libdb_sql-%{libver}.so
 %endif
 
 cd $RPM_BUILD_ROOT%{_libdir}
@@ -677,11 +679,18 @@ rm -rf $RPM_BUILD_ROOT
 
 %files sql
 %defattr(644,root,root,755)
+%if %{with rpm_db}
+%attr(755,root,root) /%{_lib}/libdb_sql-%{libver}.so
+%else
 %attr(755,root,root) %{_libdir}/libdb_sql-%{libver}.so
+%endif
 
 %files sql-devel
 %defattr(644,root,root,755)
 %{_libdir}/libdb_sql-%{libver}.la
+%if %{with rpm_db}
+%attr(755,root,root) %{_libdir}/libdb_sql-%{libver}.so
+%endif
 %if %{with default_db}
 %attr(755,root,root) %{_libdir}/libdb_sql.so
 %attr(755,root,root) %{_libdir}/libdb_sql-%{major}.so
