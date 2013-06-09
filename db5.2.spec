@@ -245,7 +245,7 @@ Pliki programistyczne biblioteki db-tcl.
 Summary:	SQL layer for Berkeley database library
 Summary(pl.UTF-8):	Wartstwa SQL dla biblioteki baz danych Berkeley
 Group:		Libraries
-%if %{with default_bd}
+%if %{with default_db}
 Provides:	db-sql = %{version}-%{release}
 %endif
 
@@ -260,7 +260,7 @@ Summary:	Development files for db-sql library
 Summary(pl.UTF-8):	Pliki programistyczne biblioteki db-sql
 Group:		Development/Libraries
 Requires:	%{name}-sql = %{version}-%{release}
-%if %{with default_bd}
+%if %{with default_db}
 Provides:	db-sql-devel = %{version}-%{release}
 Obsoletes:	db-sql-devel
 %endif
