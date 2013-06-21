@@ -17,7 +17,7 @@ Summary:	Berkeley DB database library for C
 Summary(pl.UTF-8):	Biblioteka C do obsługi baz Berkeley DB
 Name:		db5.2
 Version:	%{ver}.%{patchlevel}
-Release:	1
+Release:	2
 License:	BSD-like (see LICENSE)
 Group:		Libraries
 #Source0Download: http://www.oracle.com/technetwork/database/berkeleydb/downloads/index-082944.html
@@ -131,6 +131,7 @@ używających Berkeley DB.
 Summary:	Berkeley database library for C++
 Summary(pl.UTF-8):	Biblioteka baz danych Berkeley dla C++
 Group:		Libraries
+Requires:	%{name} = %{version}-%{release}
 %if %{with default_db}
 Provides:	db-cxx = %{version}-%{release}
 Obsoletes:	db4-cxx
@@ -181,6 +182,7 @@ Statyczna wersja biblioteki db-cxx.
 Summary:	Berkeley database library for Java
 Summary(pl.UTF-8):	Biblioteka baz danych Berkeley dla Javy
 Group:		Libraries
+Requires:	%{name} = %{version}-%{release}
 Requires:	jpackage-utils
 %if %{with default_db}
 Provides:	db-java = %{version}-%{release}
@@ -214,6 +216,7 @@ Pliki programistyczne biblioteki db-java.
 Summary:	Berkeley database library for Tcl
 Summary(pl.UTF-8):	Biblioteka baz danych Berkeley dla Tcl
 Group:		Development/Languages/Tcl
+Requires:	%{name} = %{version}-%{release}
 Requires:	tcl
 %if %{with default_db}
 Provides:	db-tcl = %{version}-%{release}
@@ -247,6 +250,7 @@ Pliki programistyczne biblioteki db-tcl.
 Summary:	SQL layer for Berkeley database library
 Summary(pl.UTF-8):	Wartstwa SQL dla biblioteki baz danych Berkeley
 Group:		Libraries
+Requires:	%{name} = %{version}-%{release}
 %if %{with default_db}
 Provides:	db-sql = %{version}-%{release}
 %endif
@@ -277,6 +281,7 @@ Pliki programistyczne biblioteki db-sql.
 Summary:	STL API for Berkeley Database library
 Summary(pl.UTF-8):	API STL dla biblioteki Berkeley Database
 Group:		Libraries
+Requires:	%{name} = %{version}-%{release}
 %if %{with default_db}
 Provides:	db-stl = %{version}-%{release}
 %endif
@@ -307,6 +312,7 @@ Pliki programistyczne biblioteki db-stl.
 Summary:	Sqlite3 API for Berkeley Database library
 Summary(pl.UTF-8):	API Sqlite3 dla biblioteki Berkeley Database
 Group:		Libraries
+Requires:	%{name} = %{version}-%{release}
 %if %{with default_db}
 Provides:	db-sqlite3 = %{version}-%{release}
 %endif
