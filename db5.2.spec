@@ -7,7 +7,6 @@
 %bcond_with	default_db	# use this db as default system db
 %bcond_without	rpm_db		# install library to rootfs for /bin/rpm
 
-%include	/usr/lib/rpm/macros.java
 
 %define		major		5
 %define		libver		%{major}.2
