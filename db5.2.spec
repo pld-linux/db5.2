@@ -380,6 +380,7 @@ poleceń.
 
 %build
 cp -f /usr/share/automake/config.sub dist
+cp -f /usr/share/automake/config.sub lang/sql/sqlite
 
 JAVACFLAGS="-source 1.5 -target 1.5"
 export JAVACFLAGS
