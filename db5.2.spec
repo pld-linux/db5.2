@@ -5,7 +5,7 @@
 %bcond_without	static_libs	# don't build static libraries
 %bcond_with	sqlite3		# build Sqlite3 API libraries
 %bcond_with	default_db	# use this db as default system db
-%bcond_without	rpm_db		# install library to rootfs for /bin/rpm
+%bcond_with	rpm_db		# install library to rootfs for /bin/rpm
 
 
 %define		major		5
@@ -16,7 +16,7 @@ Summary:	Berkeley DB database library for C
 Summary(pl.UTF-8):	Biblioteka C do obsługi baz Berkeley DB
 Name:		db5.2
 Version:	%{ver}.%{patchlevel}
-Release:	4
+Release:	5
 License:	BSD-like (see LICENSE)
 Group:		Libraries
 #Source0Download: http://www.oracle.com/technetwork/database/berkeleydb/downloads/index-082944.html
