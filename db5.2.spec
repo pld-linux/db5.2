@@ -16,7 +16,7 @@ Summary:	Berkeley DB database library for C
 Summary(pl.UTF-8):	Biblioteka C do obsługi baz Berkeley DB
 Name:		db5.2
 Version:	%{ver}.%{patchlevel}
-Release:	6
+Release:	7
 License:	BSD-like (see LICENSE)
 Group:		Libraries
 #Source0Download: http://www.oracle.com/technetwork/database/berkeleydb/downloads/index-082944.html
@@ -24,6 +24,7 @@ Source0:	http://download.oracle.com/berkeley-db/db-%{ver}.tar.gz
 # Source0-md5:	28c39545efbeb926d1efef0bf33135b9
 Patch0:		%{name}-link.patch
 Patch1:		%{name}-sql-features.patch
+Patch2:		%{name}-atomic_compare_exchange.patch
 URL:		http://www.oracle.com/technetwork/database/berkeleydb/downloads/index.html
 BuildRequires:	automake
 %if %{with java}
@@ -377,6 +378,7 @@ poleceń.
 %setup -q -n db-%{ver}
 %patch -P0 -p1
 %patch -P1 -p1
+%patch -P2 -p1
 
 %build
 cp -f /usr/share/automake/config.sub dist
@@ -385,6 +387,8 @@ cp -f /usr/share/automake/config.sub lang/sql/sqlite
 JAVACFLAGS="-source 1.5 -target 1.5"
 export JAVACFLAGS
 
+%define		configuredir	../dist
+
 %if %{with static_libs}
 cp -a build_unix build_unix.static
 
@@ -392,12 +396,14 @@ cd build_unix.static
 
 CC="%{__cc}"
 CXX="%{__cxx}"
-CFLAGS="%{rpmcflags}"
+# -std=gnu89: BDB 5.2.42 (2012) configure tests use K&R-style main();
+# pin C standard so -Werror=implicit-int (GCC 14 default) doesn't reject them
+CFLAGS="%{rpmcflags} -std=gnu89"
 CXXFLAGS="%{rpmcflags} -fno-implicit-templates"
 LDFLAGS="%{rpmcflags} %{rpmldflags}"
 export CC CXX CFLAGS CXXFLAGS LDFLAGS
 
-../dist/%configure \
+%configure \
 	--disable-shared \
 	--enable-static \
 	--enable-compat185 \
@@ -415,9 +421,11 @@ cd ..
 
 cd build_unix
 
-../dist/%configure \
-	--prefix=%{_prefix} \
-	--libdir=%{_libdir} \
+# -std=gnu89: see CFLAGS comment in static block above
+CFLAGS="%{rpmcflags} -std=gnu89"
+export CFLAGS
+
+%configure \
 	--enable-shared \
 	--disable-static \
 	--enable-compat185 \

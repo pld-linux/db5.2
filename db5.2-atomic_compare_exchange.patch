@@ -1,0 +1,144 @@
+--- db-5.2.42.orig/src/dbinc/atomic.h	2026-05-20 23:39:56.512884013 +0200
++++ db-5.2.42/src/dbinc/atomic.h	2026-05-20 23:40:00.834484313 +0200
+@@ -25,7 +25,7 @@
+  *	 atomic_dec(env, valueptr)
+  *	    Subtracts 1 from the db_atomic_t value, returning the new value.
+  *
+- *	 atomic_compare_exchange(env, valueptr, oldval, newval)
++ *	 atomic_compare_exchange_db(env, valueptr, oldval, newval)
+  *	    If the db_atomic_t's value is still oldval, set it to newval.
+  *	    It returns 1 for success or 0 for failure.
+  *
+@@ -115,12 +115,12 @@
+ 	(WINCE_ATOMIC_MAGIC(p),						\
+ 	InterlockedDecrement((interlocked_val)(&(p)->value)))
+ #if defined(_MSC_VER) && _MSC_VER < 1300
+-#define	atomic_compare_exchange(env, p, oldval, newval)			\
++#define	atomic_compare_exchange_db(env, p, oldval, newval)			\
+ 	(WINCE_ATOMIC_MAGIC(p),						\
+ 	(InterlockedCompareExchange((PVOID *)(&(p)->value),		\
+ 	(PVOID)(newval), (PVOID)(oldval)) == (PVOID)(oldval)))
+ #else
+-#define	atomic_compare_exchange(env, p, oldval, newval)			\
++#define	atomic_compare_exchange_db(env, p, oldval, newval)			\
+ 	(WINCE_ATOMIC_MAGIC(p),						\
+ 	(InterlockedCompareExchange((interlocked_val)(&(p)->value),	\
+ 	(newval), (oldval)) == (oldval)))
+@@ -134,7 +134,7 @@
+ 	atomic_inc_uint_nv((volatile unsigned int *) &(p)->value)
+ #define	atomic_dec(env, p)	\
+ 	atomic_dec_uint_nv((volatile unsigned int *) &(p)->value)
+-#define	atomic_compare_exchange(env, p, oval, nval)		\
++#define	atomic_compare_exchange_db(env, p, oval, nval)		\
+ 	(atomic_cas_32((volatile unsigned int *) &(p)->value,	\
+ 	    (oval), (nval)) == (oval))
+ #endif
+@@ -143,8 +143,8 @@
+ /* x86/x86_64 gcc  */
+ #define	atomic_inc(env, p)	__atomic_inc(p)
+ #define	atomic_dec(env, p)	__atomic_dec(p)
+-#define	atomic_compare_exchange(env, p, o, n)	\
+-	__atomic_compare_exchange((p), (o), (n))
++#define	atomic_compare_exchange_db(env, p, o, n)	\
++	__atomic_compare_exchange_db((p), (o), (n))
+ static inline int __atomic_inc(db_atomic_t *p)
+ {
+ 	int	temp;
+@@ -176,7 +176,7 @@
+  * http://gcc.gnu.org/onlinedocs/gcc-4.1.0/gcc/Atomic-Builtins.html
+  * which configure could be changed to use.
+  */
+-static inline int __atomic_compare_exchange(
++static inline int __atomic_compare_exchange_db(
+ 	db_atomic_t *p, atomic_value_t oldval, atomic_value_t newval)
+ {
+ 	atomic_value_t was;
+@@ -204,7 +204,7 @@
+  */
+ #define	atomic_inc(env, p)	(++(p)->value)
+ #define	atomic_dec(env, p)	(--(p)->value)
+-#define	atomic_compare_exchange(env, p, oldval, newval)		\
++#define	atomic_compare_exchange_db(env, p, oldval, newval)		\
+ 	(DB_ASSERT(env, atomic_read(p) == (oldval)),		\
+ 	atomic_init(p, (newval)), 1)
+ #else
+--- db-5.2.42.orig/src/dbinc/mutex_int.h	2026-05-20 23:39:56.516217346 +0200
++++ db-5.2.42/src/dbinc/mutex_int.h	2026-05-20 23:40:00.836528920 +0200
+@@ -1050,7 +1050,7 @@
+  */
+ #define	MUTEXP_ACQUIRE(mutexp)	\
+ 	(F_ISSET(mutexp, DB_MUTEX_SHARED) ?			\
+-	atomic_compare_exchange(env,				\
++	atomic_compare_exchange_db(env,				\
+ 	    &(mutexp)->sharecount, 0, MUTEX_SHARE_ISEXCLUSIVE) :	\
+ 	MUTEX_SET(&(mutexp)->tas))
+ #else
+--- db-5.2.42.orig/src/dbinc_auto/int_def.in	2026-05-20 23:39:56.519550679 +0200
++++ db-5.2.42/src/dbinc_auto/int_def.in	2026-05-20 23:40:00.838917317 +0200
+@@ -1470,7 +1470,7 @@
+ #define	__atomic_dec __atomic_dec@DB_VERSION_UNIQUE_NAME@
+ #endif
+ #if !defined(HAVE_ATOMIC_SUPPORT) && defined(HAVE_MUTEX_SUPPORT)
+-#define	atomic_compare_exchange atomic_compare_exchange@DB_VERSION_UNIQUE_NAME@
++#define	atomic_compare_exchange_db atomic_compare_exchange_db@DB_VERSION_UNIQUE_NAME@
+ #endif
+ #define	__db_pthread_mutex_init __db_pthread_mutex_init@DB_VERSION_UNIQUE_NAME@
+ #ifndef HAVE_MUTEX_HYBRID
+--- db-5.2.42.orig/src/dbinc_auto/mutex_ext.h	2026-05-20 23:39:56.519550679 +0200
++++ db-5.2.42/src/dbinc_auto/mutex_ext.h	2026-05-20 23:40:00.841654418 +0200
+@@ -38,7 +38,7 @@
+ atomic_value_t __atomic_dec __P((ENV *, db_atomic_t *));
+ #endif
+ #if !defined(HAVE_ATOMIC_SUPPORT) && defined(HAVE_MUTEX_SUPPORT)
+-int atomic_compare_exchange __P((ENV *, db_atomic_t *, atomic_value_t, atomic_value_t));
++int atomic_compare_exchange_db __P((ENV *, db_atomic_t *, atomic_value_t, atomic_value_t));
+ #endif
+ int __db_pthread_mutex_init __P((ENV *, db_mutex_t, u_int32_t));
+ #ifndef HAVE_MUTEX_HYBRID
+--- db-5.2.42.orig/src/mutex/mut_method.c	2026-05-20 23:39:56.522884013 +0200
++++ db-5.2.42/src/mutex/mut_method.c	2026-05-20 23:40:00.843558549 +0200
+@@ -445,11 +445,11 @@
+ }
+ 
+ /*
+- * atomic_compare_exchange
++ * atomic_compare_exchange_db
+  *	Use a mutex to provide an atomic decrement function
+  *
+  * PUBLIC: #if !defined(HAVE_ATOMIC_SUPPORT) && defined(HAVE_MUTEX_SUPPORT)
+- * PUBLIC: int atomic_compare_exchange
++ * PUBLIC: int atomic_compare_exchange_db
+  * PUBLIC:     __P((ENV *, db_atomic_t *, atomic_value_t, atomic_value_t));
+  * PUBLIC: #endif
+  *	Returns 1 if the *v was equal to oldval, else 0
+@@ -458,7 +458,7 @@
+  *		Sets the value to newval if and only if returning 1
+  */
+ int
+-atomic_compare_exchange(env, v, oldval, newval)
++atomic_compare_exchange_db(env, v, oldval, newval)
+ 	ENV *env;
+ 	db_atomic_t *v;
+ 	atomic_value_t oldval;
+--- db-5.2.42.orig/src/mutex/mut_tas.c	2026-05-20 23:39:56.522884013 +0200
++++ db-5.2.42/src/mutex/mut_tas.c	2026-05-20 23:40:00.846025041 +0200
+@@ -366,7 +366,7 @@
+ 	    mtxregion->stat.st_mutex_tas_spins; nspins > 0; --nspins) {
+ 		lock = atomic_read(&mutexp->sharecount);
+ 		if (lock == MUTEX_SHARE_ISEXCLUSIVE ||
+-		    !atomic_compare_exchange(env,
++		    !atomic_compare_exchange_db(env,
+ 			&mutexp->sharecount, lock, lock + 1)) {
+ 			/*
+ 			 * Some systems (notably those with newer Intel CPUs)
+--- db-5.2.42.orig/src/mutex/mut_win32.c	2026-05-20 23:39:56.526217346 +0200
++++ db-5.2.42/src/mutex/mut_win32.c	2026-05-20 23:40:00.848276556 +0200
+@@ -361,7 +361,7 @@
+ 				return (DB_LOCK_NOTGRANTED);
+ 
+ 			continue;
+-		} else if (!atomic_compare_exchange(env, &mutexp->sharecount,
++		} else if (!atomic_compare_exchange_db(env, &mutexp->sharecount,
+ 		    mtx_val, mtx_val + 1)) {
+ 			/*
+ 			 * Some systems (notably those with newer Intel CPUs)
