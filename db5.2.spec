@@ -7,6 +7,8 @@
 %bcond_with	default_db	# use this db as default system db
 %bcond_with	rpm_db		# install library to rootfs for /bin/rpm
 
+# javac 9+ rejects the -source/-target 1.5 the Java bindings are built with
+%{?with_java:%{?use_default_jdk:%use_default_jdk 8}}
 
 %define		major		5
 %define		libver		%{major}.2
@@ -16,7 +18,7 @@ Summary:	Berkeley DB database library for C
 Summary(pl.UTF-8):	Biblioteka C do obsługi baz Berkeley DB
 Name:		db5.2
 Version:	%{ver}.%{patchlevel}
-Release:	8
+Release:	9
 License:	BSD-like (see LICENSE)
 Group:		Libraries
 #Source0Download: http://www.oracle.com/technetwork/database/berkeleydb/downloads/index-082944.html
@@ -28,11 +30,11 @@ Patch2:		%{name}-atomic_compare_exchange.patch
 URL:		http://www.oracle.com/technetwork/database/berkeleydb/downloads/index.html
 BuildRequires:	automake
 %if %{with java}
-BuildRequires:	jdk
+%buildrequires_jdk
 BuildRequires:	rpm-javaprov
 %endif
 BuildRequires:	libstdc++-devel
-BuildRequires:	rpmbuild(macros) >= 1.426
+BuildRequires:	rpmbuild(macros) >= 2.021
 BuildRequires:	sed >= 4.0
 %{?with_tcl:BuildRequires:	tcl-devel >= 8.4.0}
 Requires:	uname(release) >= 2.6.0
@@ -386,6 +388,13 @@ cp -f /usr/share/automake/config.sub lang/sql/sqlite
 
 JAVACFLAGS="-source 1.5 -target 1.5"
 export JAVACFLAGS
+
+%if %{with java}
+JAVA="%{java_home}/bin/java"
+JAVAC="%{java_home}/bin/javac"
+JAR="%{java_home}/bin/jar"
+export JAVA JAVAC JAR
+%endif
 
 %define		configuredir	../dist
 
